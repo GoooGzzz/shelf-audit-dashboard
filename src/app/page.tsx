@@ -12,10 +12,20 @@ import {
   PieChart,
   Pie,
   Cell,
-  Legend, // <-- Added back
+  Legend,
 } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, TrendingUp, Users, AlertTriangle, X, Eye, Calendar, MapPin, Clock } from 'lucide-react';
+import {
+  AlertCircle,
+  TrendingUp,
+  Users,
+  AlertTriangle,
+  X,
+  Eye,
+  Calendar,
+  MapPin,
+  Clock,
+} from 'lucide-react';
 
 interface Employee {
   code: string;
@@ -32,83 +42,83 @@ interface Employee {
 }
 
 const data: Employee[] = [
-  { 
-    code: 'A-1382', 
-    name: 'Ahmed Fathy Ahmed Abd El Mageed', 
+  {
+    code: 'A-1382',
+    name: 'Ahmed Fathy Ahmed Abd El Mageed',
     role: 'Field Rep',
-    issue: 'Duplicated Reports', 
-    details: '5 stores: 92% identical data', 
-    percent: 92, 
+    issue: 'Duplicated Reports',
+    details: '5 stores: 92% identical data',
+    percent: 92,
     badge: 'red',
     visits: 24,
     duplicated: 22,
     lastVisit: 'Nov 10, 2025',
-    stores: ['S-12725-001', 'S-1021-001', 'S-11177-001', 'S-7705-001', 'S-8011-001']
+    stores: ['S-12725-001', 'S-1021-001', 'S-11177-001', 'S-7705-001', 'S-8011-001'],
   },
-  { 
-    code: 'A-1888', 
-    name: 'Ahmed Ali Ahmed Abd El Mageed Ramadan', 
+  {
+    code: 'A-1888',
+    name: 'Ahmed Ali Ahmed Abd El Mageed Ramadan',
     role: 'Field Rep',
-    issue: 'Duplicated Reports', 
-    details: 'S-12677: 100% match', 
-    percent: 85, 
+    issue: 'Duplicated Reports',
+    details: 'S-12677: 100% match',
+    percent: 85,
     badge: 'red',
     visits: 20,
     duplicated: 17,
     lastVisit: 'Nov 8, 2025',
-    stores: ['S-12677-001', 'S-9035-001', 'S-14075-001']
+    stores: ['S-12677-001', 'S-9035-001', 'S-14075-001'],
   },
-  { 
-    code: 'A-2087', 
-    name: 'Ahmed Alaa El Deen Ahmed Abd El Aziz', 
+  {
+    code: 'A-2087',
+    name: 'Ahmed Alaa El Deen Ahmed Abd El Aziz',
     role: 'Field Rep',
-    issue: 'Inconsistent Values', 
-    details: 'AV blank drop', 
-    percent: 78, 
+    issue: 'Inconsistent Values',
+    details: 'AV blank drop',
+    percent: 78,
     badge: 'orange',
     visits: 18,
     duplicated: 14,
     lastVisit: 'Nov 9, 2025',
-    stores: ['S-12679-001', 'S-13475-001', 'S-7781-001']
+    stores: ['S-12679-001', 'S-13475-001', 'S-7781-001'],
   },
-  { 
-    code: 'A-1862', 
-    name: 'Eslam Mahmoud Akl Li Atta Allah', 
+  {
+    code: 'A-1862',
+    name: 'Eslam Mahmoud Akl Li Atta Allah',
     role: 'Field Rep',
-    issue: 'Duplicated Reports', 
-    details: '3 stores identical', 
-    percent: 88, 
+    issue: 'Duplicated Reports',
+    details: '3 stores identical',
+    percent: 88,
     badge: 'red',
     visits: 17,
     duplicated: 15,
     lastVisit: 'Nov 7, 2025',
-    stores: ['S-11289-001', 'S-7650-001', 'S-7692-001']
+    stores: ['S-11289-001', 'S-7650-001', 'S-7692-001'],
   },
-  { 
-    code: 'A-2120', 
-    name: 'Mohamed Abo El Ezz Zaki Mohamed', 
+  {
+    code: 'A-2120',
+    name: 'Mohamed Abo El Ezz Zaki Mohamed',
     role: 'Field Rep',
-    issue: 'Static Data', 
-    details: 'All 8 visits identical', 
-    percent: 100, 
+    issue: 'Static Data',
+    details: 'All 8 visits identical',
+    percent: 100,
     badge: 'red',
     visits: 8,
     duplicated: 8,
     lastVisit: 'Nov 5, 2025',
-    stores: ['BS-IR-Naga Hamady']
+    stores: ['BS-IR-Naga Hamady'],
   },
-  { 
-    code: 'A-2259', 
-    name: 'Ahmed Farouk Ahmed El Sayed', 
+  {
+    code: 'A-2259',
+    name: 'Ahmed Farouk Ahmed El Sayed',
     role: 'Promoter',
-    issue: 'Minor Variance', 
-    details: '13% drop once', 
-    percent: 15, 
+    issue: 'Minor Variance',
+    details: '13% drop once',
+    percent: 15,
     badge: 'yellow',
     visits: 14,
     duplicated: 2,
     lastVisit: 'Nov 11, 2025',
-    stores: ['Raya']
+    stores: ['Raya'],
   },
 ];
 
@@ -139,25 +149,15 @@ export default function ShelfAuditDashboard() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-12"
-          >
-            <h1 className="text-5xl font-bold text-gray-900 mb-4">
-              Shelf Share Audit Dashboard
-            </h1>
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
+            <h1 className="text-5xl font-bold text-gray-900 mb-4">Shelf Share Audit Dashboard</h1>
             <p className="text-xl text-gray-600">Weeks 43–45 | Fake Data Detection</p>
           </motion.div>
 
-          {/* Charts Row */}
+          {/* Charts */}
           <div className="grid lg:grid-cols-2 gap-8 mb-12">
-            {/* Bar Chart */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="bg-white rounded-xl p-6 shadow-lg"
-            >
+            {/* Bar Chart – FIXED */}
+            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="bg-white rounded-xl p-6 shadow-lg">
               <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center gap-2">
                 <TrendingUp className="w-6 h-6 text-red-600" />
                 Risk % by Employee
@@ -168,17 +168,15 @@ export default function ShelfAuditDashboard() {
                   <XAxis dataKey="name" angle={-45} textAnchor="end" height={70} />
                   <YAxis domain={[0, 100]} />
                   <Tooltip />
-                  <Bar dataKey="value" radius={[4, 4, 0, 0]} fill={(entry: any) => entry.fill} />
+                  {barData.map((entry, index) => (
+                    <Bar key={index} dataKey="value" fill={entry.fill} radius={[4, 4, 0, 0]} />
+                  ))}
                 </BarChart>
               </ResponsiveContainer>
             </motion.div>
 
             {/* Pie Chart */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="bg-white rounded-xl p-6 shadow-lg"
-            >
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="bg-white rounded-xl p-6 shadow-lg">
               <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center gap-2">
                 <Users className="w-6 h-6 text-orange-600" />
                 Risk Distribution
@@ -203,22 +201,18 @@ export default function ShelfAuditDashboard() {
                     <Cell fill="#a8dadc" />
                   </Pie>
                   <Tooltip />
-                  <Legend /> {/* Now works */}
+                  <Legend />
                 </PieChart>
               </ResponsiveContainer>
             </motion.div>
           </div>
 
           {/* Table */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-xl shadow-lg overflow-hidden"
-          >
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-xl shadow-lg overflow-hidden">
             <div className="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4 text-white">
               <h2 className="text-xl font-semibold flex items-center gap-2">
                 <AlertTriangle className="w-5 h-5" />
-                Audit Results (Click Eye to View Details)
+                Audit Results (Click View)
               </h2>
             </div>
             <div className="overflow-x-auto">
@@ -236,10 +230,7 @@ export default function ShelfAuditDashboard() {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {data.map((emp) => (
-                    <tr
-                      key={emp.code}
-                      className="hover:bg-gray-50 transition-colors"
-                    >
+                    <tr key={emp.code} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4 font-mono font-medium">{emp.code}</td>
                       <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">{emp.name}</td>
                       <td className="px-6 py-4 text-sm text-gray-600">{emp.role}</td>
@@ -286,12 +277,8 @@ export default function ShelfAuditDashboard() {
             </div>
           </motion.div>
 
-          {/* Actions */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-12 bg-gradient-to-r from-red-600 to-red-700 rounded-xl p-8 text-white"
-          >
+          {/* Immediate Actions */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mt-12 bg-gradient-to-r from-red-600 to-red-700 rounded-xl p-8 text-white">
             <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
               <AlertCircle className="w-8 h-8" />
               Immediate Actions Required
@@ -314,7 +301,7 @@ export default function ShelfAuditDashboard() {
         </div>
       </div>
 
-      {/* Detailed Employee Modal */}
+      {/* Detailed Modal */}
       <AnimatePresence>
         {showModal && selectedEmp && (
           <motion.div
@@ -331,25 +318,19 @@ export default function ShelfAuditDashboard() {
               className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Modal Header */}
               <div className="bg-gradient-to-r from-red-600 to-red-700 text-white p-6 rounded-t-2xl">
                 <div className="flex justify-between items-start">
                   <div>
                     <h2 className="text-2xl font-bold">{selectedEmp.name}</h2>
-                    <p className="text-red-100 mt-1">Employee Code: {selectedEmp.code}</p>
+                    <p className="text-red-100 mt-1">Code: {selectedEmp.code}</p>
                   </div>
-                  <button
-                    onClick={closeModal}
-                    className="text-white hover:bg-white/20 p-2 rounded-full transition-colors"
-                  >
+                  <button onClick={closeModal} className="text-white hover:bg-white/20 p-2 rounded-full">
                     <X className="w-5 h-5" />
                   </button>
                 </div>
               </div>
 
-              {/* Modal Body */}
               <div className="p-6 space-y-6">
-                {/* Summary Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="bg-gray-50 p-4 rounded-lg text-center">
                     <div className="text-3xl font-bold text-red-600">{selectedEmp.percent}%</div>
@@ -369,39 +350,38 @@ export default function ShelfAuditDashboard() {
                   </div>
                 </div>
 
-                {/* Issue Badge */}
                 <div className="flex items-center gap-3">
-                  <span className={`inline-block px-4 py-2 rounded-full text-sm font-bold ${
-                    selectedEmp.badge === 'red'
-                      ? 'bg-red-100 text-red-800'
-                      : selectedEmp.badge === 'orange'
-                      ? 'bg-orange-100 text-orange-800'
-                      : 'bg-yellow-100 text-yellow-800'
-                  }`}>
+                  <span
+                    className={`inline-block px-4 py-2 rounded-full text-sm font-bold ${
+                      selectedEmp.badge === 'red'
+                        ? 'bg-red-100 text-red-800'
+                        : selectedEmp.badge === 'orange'
+                        ? 'bg-orange-100 text-orange-800'
+                        : 'bg-yellow-100 text-yellow-800'
+                    }`}
+                  >
                     {selectedEmp.issue}
                   </span>
                   <span className="text-gray-600">• {selectedEmp.details}</span>
                 </div>
 
-                {/* Activity Timeline */}
                 <div>
                   <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
                     <Clock className="w-5 h-5" />
                     Recent Activity
                   </h3>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-3 text-sm">
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-3">
                       <Calendar className="w-4 h-4 text-gray-500" />
-                      <span>Last visit: <strong>{selectedEmp.lastVisit}</strong></span>
+                      Last visit: <strong>{selectedEmp.lastVisit}</strong>
                     </div>
-                    <div className="flex items-center gap-3 text-sm">
+                    <div className="flex items-center gap-3">
                       <MapPin className="w-4 h-4 text-gray-500" />
-                      <span>Stores covered: <strong>{selectedEmp.stores.length}</strong></span>
+                      Stores covered: <strong>{selectedEmp.stores.length}</strong>
                     </div>
                   </div>
                 </div>
 
-                {/* Stores List */}
                 <div>
                   <h3 className="text-lg font-semibold text-gray-800 mb-3">Stores Visited</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -413,12 +393,11 @@ export default function ShelfAuditDashboard() {
                   </div>
                 </div>
 
-                {/* Action Buttons */}
                 <div className="flex justify-end gap-3 pt-4 border-t">
-                  <button className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors">
+                  <button className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
                     Export Report
                   </button>
-                  <button className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                  <button className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
                     Flag for Review
                   </button>
                 </div>
