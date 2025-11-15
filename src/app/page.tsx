@@ -421,11 +421,16 @@ const DataIntegrityDashboard = () => {
 
   return (
     <div className="bg-white min-h-screen">
-      {/* Gradient Header */}
+      {/* Gradient Header with SmartSense Logo */}
       <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 text-white py-12 shadow-lg">
         <div className="max-w-7xl mx-auto px-8">
           <div className="flex items-center gap-4 mb-2">
-            <Shield size={40} className="text-yellow-300" />
+            {/* 👇 SMARTSENSE LOGO HERE */}
+            <img
+              src="/images/smart-sense-logo.png"
+              alt="SmartSense-Ltd Innovation Team"
+              className="h-12 w-auto"
+            />
             <h1 className="text-5xl font-bold">Samsung CE Audit</h1>
           </div>
           <p className="text-blue-100 text-lg">Data Integrity Validation System</p>
