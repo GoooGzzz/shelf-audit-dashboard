@@ -14,62 +14,63 @@ import {
   Pie,
   Cell,
 } from 'recharts';
+
 // Icon components using SVG
-const AlertTriangle = ({ size = 24 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+const AlertTriangle = ({ size = 24, className = '' }: { size?: number; className?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
     <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3.05h16.94a2 2 0 0 0 1.71-3.05L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
   </svg>
 );
 
-const Users = ({ size = 24 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+const Users = ({ size = 24, className = '' }: { size?: number; className?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
   </svg>
 );
 
-const Upload = ({ size = 24 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+const Upload = ({ size = 24, className = '' }: { size?: number; className?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
   </svg>
 );
 
-const CheckCircle = ({ size = 24 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+const CheckCircle = ({ size = 24, className = '' }: { size?: number; className?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
   </svg>
 );
 
-const Shield = ({ size = 24 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+const Shield = ({ size = 24, className = '' }: { size?: number; className?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
   </svg>
 );
 
-const Zap = ({ size = 24 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+const Zap = ({ size = 24, className = '' }: { size?: number; className?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
     <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
   </svg>
 );
 
-const Eye = ({ size = 24 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+const Eye = ({ size = 24, className = '' }: { size?: number; className?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
   </svg>
 );
 
 const DataIntegrityDashboard = () => {
-  const [data, setData] = useState([]);
-  const [violations, setViolations] = useState([]);
-  const [stats, setStats] = useState({});
-  const [filteredViolations, setFilteredViolations] = useState([]);
+  const [data, setData] = useState<any[]>([]);
+  const [violations, setViolations] = useState<any[]>([]);
+  const [stats, setStats] = useState<any>({});
+  const [filteredViolations, setFilteredViolations] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState('overview');
   const [filterType, setFilterType] = useState('all');
   const [fileLoaded, setFileLoaded] = useState(false);
   const [loadMessage, setLoadMessage] = useState('');
-  const [hoveredCard, setHoveredCard] = useState(null);
+  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
 
   // CSV Parser
-  const parseCSV = (csvText) => {
+  const parseCSV = (csvText: string) => {
     const lines = csvText.trim().split('\n');
     return lines.slice(2).map((line) => {
       const values = line.split(',');
@@ -101,9 +102,9 @@ const DataIntegrityDashboard = () => {
   };
 
   // Data Integrity Violation Detector
-  const detectViolations = (rows) => {
-    const detected = [];
-    const employeeMap = {};
+  const detectViolations = (rows: any[]) => {
+    const detected: any[] = [];
+    const employeeMap: any = {};
 
     rows.forEach((row) => {
       if (!employeeMap[row.empCode]) {
@@ -131,7 +132,7 @@ const DataIntegrityDashboard = () => {
     // Rule 2: Copy-Paste Suspicious Entries
     Object.keys(employeeMap).forEach((empCode) => {
       const entries = employeeMap[empCode];
-      entries.forEach((entry, i) => {
+      entries.forEach((entry: any, i: number) => {
         for (let j = i + 1; j < Math.min(i + 5, entries.length); j++) {
           const current = entries[i];
           const next = entries[j];
@@ -221,12 +222,12 @@ const DataIntegrityDashboard = () => {
   };
 
   // Calculate Statistics
-  const calculateStats = (rows, violations) => {
+  const calculateStats = (rows: any[], violations: any[]) => {
     const criticalCount = violations.filter((a) => a.severity === 'CRITICAL').length;
     const highCount = violations.filter((a) => a.severity === 'HIGH').length;
     const affectedEmployees = new Set(violations.map((a) => a.empCode)).size;
 
-    const employeeScores = {};
+    const employeeScores: any = {};
     violations.forEach((a) => {
       if (!employeeScores[a.empCode]) {
         employeeScores[a.empCode] = {
@@ -249,19 +250,19 @@ const DataIntegrityDashboard = () => {
       highViolations: highCount,
       affectedEmployees,
       employeeScores: Object.entries(employeeScores)
-        .map(([code, info]) => ({ code, ...info }))
-        .sort((a, b) => b.total - a.total),
+        .map(([code, info]: [string, any]) => ({ code, ...(info as any) }))
+        .sort((a: any, b: any) => b.total - a.total),
       issueDistribution: [
-        { name: 'Copy-Paste', value: violations.filter((a) => a.type === 'COPY_PASTE_VIOLATION').length },
-        { name: 'All-Zeros', value: violations.filter((a) => a.type === 'ALL_ZEROS_VIOLATION').length },
-        { name: 'Missing AV', value: violations.filter((a) => a.type === 'MISSING_AV_DATA').length },
-        { name: 'Math Error', value: violations.filter((a) => a.type === 'MATH_INCONSISTENCY').length },
+        { name: 'Copy-Paste', value: violations.filter((a: any) => a.type === 'COPY_PASTE_VIOLATION').length },
+        { name: 'All-Zeros', value: violations.filter((a: any) => a.type === 'ALL_ZEROS_VIOLATION').length },
+        { name: 'Missing AV', value: violations.filter((a: any) => a.type === 'MISSING_AV_DATA').length },
+        { name: 'Math Error', value: violations.filter((a: any) => a.type === 'MATH_INCONSISTENCY').length },
       ],
     };
   };
 
   // Handle file upload
-  const handleFileUpload = (event) => {
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -293,132 +294,55 @@ const DataIntegrityDashboard = () => {
   // Load sample data on mount
   useEffect(() => {
     const loadSampleData = () => {
-      const sampleData = [
+      const sampleData: any[] = [
         {
-          week: 'W43',
-          day: '10/21',
-          empCode: 'A-1382',
-          empName: 'Ahmed Fathy Ahmed Abd El Mageed',
-          title: 'Merchandiser',
-          shopCode: 'S-12725-001',
-          shopName: 'Gresh Center (Ismailia)',
-          avTotal: 11,
-          refTotal: 8,
-          wmTotal: 5,
-          avBrands: [2,0,0,4,0,0,0,0,0,0,0,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          avSum: 11,
-          refBrands: [2,0,0,0,0,0,0,0,1,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          refSum: 8,
-          wmBrands: [2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          wmSum: 5,
+          week: 'W43', day: '10/21', empCode: 'A-1382', empName: 'Ahmed Fathy Ahmed Abd El Mageed', title: 'Merchandiser',
+          shopCode: 'S-12725-001', shopName: 'Gresh Center (Ismailia)', avTotal: 11, refTotal: 8, wmTotal: 5,
+          avBrands: [2,0,0,4,0,0,0,0,0,0,0,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], avSum: 11,
+          refBrands: [2,0,0,0,0,0,0,0,1,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0], refSum: 8,
+          wmBrands: [2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], wmSum: 5,
         },
         {
-          week: 'W43',
-          day: '10/23',
-          empCode: 'A-1382',
-          empName: 'Ahmed Fathy Ahmed Abd El Mageed',
-          title: 'Merchandiser',
-          shopCode: 'S-12725-001',
-          shopName: 'Gresh Center (Ismailia)',
-          avTotal: 11,
-          refTotal: 8,
-          wmTotal: 5,
-          avBrands: [2,0,0,4,0,0,0,0,0,0,0,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          avSum: 11,
-          refBrands: [2,0,0,0,0,0,0,0,1,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          refSum: 8,
-          wmBrands: [2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          wmSum: 5,
+          week: 'W43', day: '10/23', empCode: 'A-1382', empName: 'Ahmed Fathy Ahmed Abd El Mageed', title: 'Merchandiser',
+          shopCode: 'S-12725-001', shopName: 'Gresh Center (Ismailia)', avTotal: 11, refTotal: 8, wmTotal: 5,
+          avBrands: [2,0,0,4,0,0,0,0,0,0,0,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], avSum: 11,
+          refBrands: [2,0,0,0,0,0,0,0,1,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0], refSum: 8,
+          wmBrands: [2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], wmSum: 5,
         },
         {
-          week: 'W44',
-          day: '10/25',
-          empCode: 'A-1382',
-          empName: 'Ahmed Fathy Ahmed Abd El Mageed',
-          title: 'Merchandiser',
-          shopCode: 'S-12725-001',
-          shopName: 'Gresh Center (Ismailia)',
-          avTotal: 11,
-          refTotal: 8,
-          wmTotal: 5,
-          avBrands: [2,0,0,4,0,0,0,0,0,0,0,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          avSum: 11,
-          refBrands: [2,0,0,0,0,0,0,0,1,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          refSum: 8,
-          wmBrands: [2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          wmSum: 5,
+          week: 'W44', day: '10/25', empCode: 'A-1382', empName: 'Ahmed Fathy Ahmed Abd El Mageed', title: 'Merchandiser',
+          shopCode: 'S-12725-001', shopName: 'Gresh Center (Ismailia)', avTotal: 11, refTotal: 8, wmTotal: 5,
+          avBrands: [2,0,0,4,0,0,0,0,0,0,0,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], avSum: 11,
+          refBrands: [2,0,0,0,0,0,0,0,1,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0], refSum: 8,
+          wmBrands: [2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], wmSum: 5,
         },
         {
-          week: 'W44',
-          day: '10/30',
-          empCode: 'A-1382',
-          empName: 'Ahmed Fathy Ahmed Abd El Mageed',
-          title: 'Merchandiser',
-          shopCode: 'S-12725-001',
-          shopName: 'Gresh Center (Ismailia)',
-          avTotal: null,
-          refTotal: 8,
-          wmTotal: 5,
-          avBrands: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          avSum: 0,
-          refBrands: [2,0,0,0,0,0,0,0,1,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          refSum: 8,
-          wmBrands: [2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          wmSum: 5,
+          week: 'W44', day: '10/30', empCode: 'A-1382', empName: 'Ahmed Fathy Ahmed Abd El Mageed', title: 'Merchandiser',
+          shopCode: 'S-12725-001', shopName: 'Gresh Center (Ismailia)', avTotal: null, refTotal: 8, wmTotal: 5,
+          avBrands: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], avSum: 0,
+          refBrands: [2,0,0,0,0,0,0,0,1,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0], refSum: 8,
+          wmBrands: [2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], wmSum: 5,
         },
         {
-          week: 'W45',
-          day: '11/2',
-          empCode: 'A-1382',
-          empName: 'Ahmed Fathy Ahmed Abd El Mageed',
-          title: 'Merchandiser',
-          shopCode: 'S-12725-001',
-          shopName: 'Gresh Center (Ismailia)',
-          avTotal: null,
-          refTotal: 8,
-          wmTotal: 5,
-          avBrands: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          avSum: 0,
-          refBrands: [2,0,0,0,0,0,0,0,1,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          refSum: 8,
-          wmBrands: [2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          wmSum: 5,
+          week: 'W45', day: '11/2', empCode: 'A-1382', empName: 'Ahmed Fathy Ahmed Abd El Mageed', title: 'Merchandiser',
+          shopCode: 'S-12725-001', shopName: 'Gresh Center (Ismailia)', avTotal: null, refTotal: 8, wmTotal: 5,
+          avBrands: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], avSum: 0,
+          refBrands: [2,0,0,0,0,0,0,0,1,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0], refSum: 8,
+          wmBrands: [2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], wmSum: 5,
         },
         {
-          week: 'W43',
-          day: '10/20',
-          empCode: 'A-2259',
-          empName: 'Ahmed Farouk Ahmed El Sayed',
-          title: 'Promoter',
-          shopCode: 'S-4682-093',
-          shopName: 'Raya (Tagmoa)',
-          avTotal: 52,
-          refTotal: 3,
-          wmTotal: 3,
-          avBrands: [28,16,2,0,0,0,0,0,0,0,0,0,3,0,2,0,0,1,0,0,0,3,0,0,0,0,0,0,0],
-          avSum: 52,
-          refBrands: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          refSum: 3,
-          wmBrands: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          wmSum: 3,
+          week: 'W43', day: '10/20', empCode: 'A-2259', empName: 'Ahmed Farouk Ahmed El Sayed', title: 'Promoter',
+          shopCode: 'S-4682-093', shopName: 'Raya (Tagmoa)', avTotal: 52, refTotal: 3, wmTotal: 3,
+          avBrands: [28,16,2,0,0,0,0,0,0,0,0,0,3,0,2,0,0,1,0,0,0,3,0,0,0,0,0,0,0], avSum: 52,
+          refBrands: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], refSum: 3,
+          wmBrands: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], wmSum: 3,
         },
         {
-          week: 'W44',
-          day: '10/25',
-          empCode: 'A-2259',
-          empName: 'Ahmed Farouk Ahmed El Sayed',
-          title: 'Promoter',
-          shopCode: 'S-4682-093',
-          shopName: 'Raya (Tagmoa)',
-          avTotal: 52,
-          refTotal: 3,
-          wmTotal: 3,
-          avBrands: [28,16,2,0,0,0,0,0,0,0,0,0,3,0,2,0,0,1,0,0,0,3,0,0,0,0,0,0,0],
-          avSum: 52,
-          refBrands: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          refSum: 3,
-          wmBrands: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          wmSum: 3,
+          week: 'W44', day: '10/25', empCode: 'A-2259', empName: 'Ahmed Farouk Ahmed El Sayed', title: 'Promoter',
+          shopCode: 'S-4682-093', shopName: 'Raya (Tagmoa)', avTotal: 52, refTotal: 3, wmTotal: 3,
+          avBrands: [28,16,2,0,0,0,0,0,0,0,0,0,3,0,2,0,0,1,0,0,0,3,0,0,0,0,0,0,0], avSum: 52,
+          refBrands: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], refSum: 3,
+          wmBrands: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], wmSum: 3,
         },
       ];
 
@@ -440,12 +364,12 @@ const DataIntegrityDashboard = () => {
     if (filterType === 'all') {
       setFilteredViolations(violations);
     } else {
-      setFilteredViolations(violations.filter((a) => a.type === filterType));
+      setFilteredViolations(violations.filter((a: any) => a.type === filterType));
     }
   }, [filterType, violations]);
 
   const COLORS = ['#ef4444', '#f97316', '#eab308', '#3b82f6'];
-  const severityColor = { CRITICAL: '#ef4444', HIGH: '#f59e0b' };
+  const severityColor: any = { CRITICAL: '#ef4444', HIGH: '#f59e0b' };
 
   return (
     <div className="bg-white min-h-screen">
@@ -499,9 +423,9 @@ const DataIntegrityDashboard = () => {
             { label: 'Critical Issues', value: stats.criticalViolations, icon: AlertTriangle, color: 'red', bgColor: 'bg-red-50', borderColor: 'border-red-500' },
             { label: 'High Priority', value: stats.highViolations, icon: Zap, color: 'yellow', bgColor: 'bg-yellow-50', borderColor: 'border-yellow-500' },
             { label: 'Affected Employees', value: stats.affectedEmployees, icon: Users, color: 'purple', bgColor: 'bg-purple-50', borderColor: 'border-purple-500' },
-          ].map((metric, idx) => {
+          ].map((metric: any, idx: number) => {
             const Icon = metric.icon;
-            const colorMap = { blue: '#2563eb', red: '#ef4444', yellow: '#f59e0b', purple: '#a855f7' };
+            const colorMap: any = { blue: '#2563eb', red: '#ef4444', yellow: '#f59e0b', purple: '#a855f7' };
             return (
               <div
                 key={idx}
@@ -523,7 +447,7 @@ const DataIntegrityDashboard = () => {
 
         {/* Tabs */}
         <div className="flex gap-2 mb-8 bg-gray-100 rounded-lg p-2 w-fit shadow-sm">
-          {['overview', 'employees', 'details', 'charts'].map((tab) => (
+          {['overview', 'employees', 'details', 'charts'].map((tab: string) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -569,7 +493,7 @@ const DataIntegrityDashboard = () => {
             <div className="bg-white rounded-xl p-8 shadow-md">
               <h2 className="text-2xl font-bold text-gray-800 mb-6">🏆 Top Employees with Data Issues</h2>
               <div className="space-y-3">
-                {stats.employeeScores?.slice(0, 5).map((emp, idx) => (
+                {stats.employeeScores?.slice(0, 5).map((emp: any, idx: number) => (
                   <div
                     key={emp.code}
                     className="bg-gradient-to-r from-red-50 to-orange-50 rounded-lg p-5 border-l-4 border-red-500 hover:shadow-lg transition-all"
@@ -627,7 +551,7 @@ const DataIntegrityDashboard = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {stats.employeeScores?.map((emp) => (
+                  {stats.employeeScores?.map((emp: any) => (
                     <tr
                       key={emp.code}
                       className="border-b border-gray-200 hover:bg-blue-50 transition-colors"
@@ -650,7 +574,7 @@ const DataIntegrityDashboard = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-xs">
-                        {Object.entries(emp.issues || {}).map(([type, count]) => (
+                        {Object.entries(emp.issues || {}).map(([type, count]: [string, any]) => (
                           <span
                             key={type}
                             className="inline-block bg-orange-100 text-orange-800 rounded px-2 py-1 mr-2 mb-1 font-semibold"
@@ -674,28 +598,28 @@ const DataIntegrityDashboard = () => {
               <label className="text-gray-800 font-bold mr-4">Filter by Type:</label>
               <select
                 value={filterType}
-                onChange={(e) => setFilterType(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFilterType(e.target.value)}
                 className="bg-gray-100 text-gray-800 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-blue-500"
               >
                 <option value="all">All Issues ({violations.length})</option>
                 <option value="COPY_PASTE_VIOLATION">
-                  Repeated Entries ({violations.filter((a) => a.type === 'COPY_PASTE_VIOLATION').length})
+                  Repeated Entries ({violations.filter((a: any) => a.type === 'COPY_PASTE_VIOLATION').length})
                 </option>
                 <option value="ALL_ZEROS_VIOLATION">
-                  All-Zero Submissions ({violations.filter((a) => a.type === 'ALL_ZEROS_VIOLATION').length})
+                  All-Zero Submissions ({violations.filter((a: any) => a.type === 'ALL_ZEROS_VIOLATION').length})
                 </option>
                 <option value="MISSING_AV_DATA">
-                  Missing AV ({violations.filter((a) => a.type === 'MISSING_AV_DATA').length})
+                  Missing AV ({violations.filter((a: any) => a.type === 'MISSING_AV_DATA').length})
                 </option>
                 <option value="MATH_INCONSISTENCY">
-                  Math Mismatches ({violations.filter((a) => a.type === 'MATH_INCONSISTENCY').length})
+                  Math Mismatches ({violations.filter((a: any) => a.type === 'MATH_INCONSISTENCY').length})
                 </option>
               </select>
             </div>
 
             <div className="space-y-3 max-h-96 overflow-y-auto">
               {filteredViolations.length > 0 ? (
-                filteredViolations.map((violation, idx) => (
+                filteredViolations.map((violation: any, idx: number) => (
                   <div
                     key={idx}
                     className="bg-white rounded-lg p-5 border-l-4 shadow-md hover:shadow-lg transition-all"
