@@ -1,20 +1,21 @@
-import { AuditRow } from "./types";
-import Papa from "papaparse"; // Using PapaParse library to parse CSV
+// src/lib/csv/parseCSV.ts
+import Papa from 'papaparse'; // Import Papa explicitly
 
-export const parseCSV = (csvText: string): AuditRow[] => {
+import { AuditRow } from "./types"; // Ensure AuditRow is imported from the correct path
+
+export const parseCSV = (csvData: string): AuditRow[] => {
   try {
-    const parsed = Papa.parse(csvText, {
+    const parsed = Papa.parse(csvData, {
       header: true,
       skipEmptyLines: true,
-      dynamicTyping: true,
     });
-
-    if (parsed.errors.length > 0) {
-      throw new Error("Malformed CSV data");
-    }
-
     return parsed.data as AuditRow[];
-  } catch (error) {
-    throw new Error("Error parsing CSV: " + error.message);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      throw new Error("Error parsing CSV: " + error.message);
+    } else {
+      // Fallback error handling for non-Error objects
+      throw new Error("Unknown error while parsing CSV");
+    }
   }
 };

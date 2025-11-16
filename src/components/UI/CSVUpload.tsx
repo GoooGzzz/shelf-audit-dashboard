@@ -1,34 +1,26 @@
-import React, { useState } from 'react';
+// File: src/components/UI/CSVUpload.tsx
 
-const CSVUpload = ({ onUpload }) => {
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
+import React from 'react';
+
+// Define the type for the onUpload prop
+interface CSVUploadProps {
+  onUpload: (data: string) => void;  // `data` is a string (CSV data)
+}
+
+const CSVUpload: React.FC<CSVUploadProps> = ({ onUpload }) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = () => {
-        const data = reader.result;
-        onUpload(data);
+        const csvData = reader.result as string;  // Make sure it's a string
+        onUpload(csvData);  // Call the onUpload function with the CSV data
       };
       reader.readAsText(file);
     }
   };
 
-  return (
-    <div className="flex flex-col items-center">
-      <input
-        type="file"
-        accept=".csv"
-        onChange={handleFileChange}
-        className="mb-4 p-2 border border-gray-300 rounded"
-      />
-      <button
-        onClick={() => document.querySelector('input[type="file"]').click()}
-        className="bg-blue-500 text-white p-2 rounded hover:bg-blue-700"
-      >
-        Upload CSV
-      </button>
-    </div>
-  );
+  return <input type="file" accept=".csv" onChange={handleFileChange} />;
 };
 
-export { CSVUpload };
+export default CSVUpload;

@@ -1,0 +1,6 @@
+[build]
+  command = "npm run build"  # Command to build the app using npm
+  publish = "out"            # Folder to publish for static export (or remove if SSR)
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"  # Use official Next.js plugin for deployment

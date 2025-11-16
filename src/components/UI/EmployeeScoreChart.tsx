@@ -1,15 +1,19 @@
+// src/components/UI/EmployeeScoreChart.tsx
 import React from "react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { AuditRow } from "@/lib/csv/types";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"; // Import from recharts
+
+// Assuming you are importing the AuditRow type from somewhere like @/lib/csv/types
+import { AuditRow } from "@/lib/csv/types";  // Adjust the path if necessary
 
 interface EmployeeScoreChartProps {
   rows: AuditRow[];
 }
 
 const EmployeeScoreChart: React.FC<EmployeeScoreChartProps> = ({ rows }) => {
+  // Prepare the data for the chart
   const data = rows.map((row) => ({
-    name: row.empName,
-    score: row.avTotal + row.refTotal + row.wmTotal, // Adjust this logic as per your scoring formula
+    name: row.employeeName,  // Assuming 'employeeName' is a property of AuditRow
+    score: row.totalAV + row.totalRef + row.totalWM,  // Adjust scoring formula as per your requirements
   }));
 
   return (
@@ -20,7 +24,7 @@ const EmployeeScoreChart: React.FC<EmployeeScoreChartProps> = ({ rows }) => {
         <YAxis />
         <Tooltip />
         <Legend />
-        <Bar dataKey="score" fill="#82ca9d" />
+        <Bar dataKey="score" fill="#8884d8" />
       </BarChart>
     </ResponsiveContainer>
   );
