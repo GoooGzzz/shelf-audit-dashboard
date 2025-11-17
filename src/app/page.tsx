@@ -2,20 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
+  BarChart, Bar, LineChart, Line, PieChart, Pie, AreaChart, Area,
+  ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+  ResponsiveContainer, Cell, RadarChart, PolarGrid, PolarAngleAxis, 
+  PolarRadiusAxis, Radar
 } from 'recharts';
 
-// Icon components using SVG
+// Icon components
 const AlertTriangle = ({ size = 24, className = '' }: { size?: number; className?: string }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
     <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3.05h16.94a2 2 0 0 0 1.71-3.05L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
@@ -58,6 +51,12 @@ const Eye = ({ size = 24, className = '' }: { size?: number; className?: string 
   </svg>
 );
 
+const TrendingUp = ({ size = 24, className = '' }: { size?: number; className?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
+    <polyline points="23 6 13.5 15.5 8.5 10.5 1 17"/><polyline points="17 6 23 6 23 12"/>
+  </svg>
+);
+
 const DataIntegrityDashboard = () => {
   const [data, setData] = useState<any[]>([]);
   const [violations, setViolations] = useState<any[]>([]);
@@ -65,11 +64,10 @@ const DataIntegrityDashboard = () => {
   const [filteredViolations, setFilteredViolations] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState('overview');
   const [filterType, setFilterType] = useState('all');
+  const [selectedTitle, setSelectedTitle] = useState('all');
   const [fileLoaded, setFileLoaded] = useState(false);
   const [loadMessage, setLoadMessage] = useState('');
-  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
 
-  // CSV Parser
   const parseCSV = (csvText: string) => {
     const lines = csvText.trim().split('\n');
     return lines.slice(2).map((line) => {
@@ -101,7 +99,6 @@ const DataIntegrityDashboard = () => {
     }).filter(Boolean);
   };
 
-  // Data Integrity Violation Detector
   const detectViolations = (rows: any[]) => {
     const detected: any[] = [];
     const employeeMap: any = {};
@@ -113,7 +110,6 @@ const DataIntegrityDashboard = () => {
       employeeMap[row.empCode].push(row);
     });
 
-    // Rule 1: Missing AV Data
     rows.forEach((row) => {
       if (row.avTotal === null && (row.refTotal !== null || row.wmTotal !== null)) {
         detected.push({
@@ -121,6 +117,7 @@ const DataIntegrityDashboard = () => {
           severity: 'HIGH',
           employee: row.empName,
           empCode: row.empCode,
+          title: row.title,
           shop: row.shopName,
           week: row.week,
           day: row.day,
@@ -129,7 +126,6 @@ const DataIntegrityDashboard = () => {
       }
     });
 
-    // Rule 2: Copy-Paste Suspicious Entries
     Object.keys(employeeMap).forEach((empCode) => {
       const entries = employeeMap[empCode];
       entries.forEach((entry: any, i: number) => {
@@ -141,20 +137,18 @@ const DataIntegrityDashboard = () => {
             current.shopCode === next.shopCode &&
             current.avTotal === next.avTotal &&
             current.refTotal === next.refTotal &&
-            current.wmTotal === next.wmTotal &&
-            current.avSum === next.avSum &&
-            current.refSum === next.refSum &&
-            current.wmSum === next.wmSum
+            current.wmTotal === next.wmTotal
           ) {
             detected.push({
               type: 'COPY_PASTE_VIOLATION',
               severity: 'CRITICAL',
               employee: current.empName,
               empCode: current.empCode,
+              title: current.title,
               shop: current.shopName,
               week: `${current.week} & ${next.week}`,
               day: current.day,
-              message: `Identical data across visits: AV=${current.avTotal}, REF=${current.refTotal}, WM=${current.wmTotal}`,
+              message: `Identical data: AV=${current.avTotal}, REF=${current.refTotal}, WM=${current.wmTotal}`,
             });
             break;
           }
@@ -162,7 +156,6 @@ const DataIntegrityDashboard = () => {
       });
     });
 
-    // Rule 3: All-Zeros Entry
     rows.forEach((row) => {
       if (row.avTotal === 0 && row.refTotal === 0 && row.wmTotal === 0) {
         detected.push({
@@ -170,15 +163,15 @@ const DataIntegrityDashboard = () => {
           severity: 'CRITICAL',
           employee: row.empName,
           empCode: row.empCode,
+          title: row.title,
           shop: row.shopName,
           week: row.week,
           day: row.day,
-          message: 'Suspicious entry: All shelf share values = 0',
+          message: 'Suspicious: All shelf values = 0',
         });
       }
     });
 
-    // Rule 4: Math Inconsistencies
     rows.forEach((row) => {
       if (row.avTotal !== null && Math.abs(row.avTotal - row.avSum) > 1) {
         detected.push({
@@ -186,34 +179,11 @@ const DataIntegrityDashboard = () => {
           severity: 'HIGH',
           employee: row.empName,
           empCode: row.empCode,
+          title: row.title,
           shop: row.shopName,
           week: row.week,
           day: row.day,
-          message: `AV Total=${row.avTotal} ≠ sum of brands (${row.avSum})`,
-        });
-      }
-      if (row.refTotal !== null && Math.abs(row.refTotal - row.refSum) > 1) {
-        detected.push({
-          type: 'MATH_INCONSISTENCY',
-          severity: 'HIGH',
-          employee: row.empName,
-          empCode: row.empCode,
-          shop: row.shopName,
-          week: row.week,
-          day: row.day,
-          message: `REF Total=${row.refTotal} ≠ sum of brands (${row.refSum})`,
-        });
-      }
-      if (row.wmTotal !== null && Math.abs(row.wmTotal - row.wmSum) > 1) {
-        detected.push({
-          type: 'MATH_INCONSISTENCY',
-          severity: 'HIGH',
-          employee: row.empName,
-          empCode: row.empCode,
-          shop: row.shopName,
-          week: row.week,
-          day: row.day,
-          message: `WM Total=${row.wmTotal} ≠ sum of brands (${row.wmSum})`,
+          message: `AV Total=${row.avTotal} ≠ brands (${row.avSum})`,
         });
       }
     });
@@ -221,34 +191,39 @@ const DataIntegrityDashboard = () => {
     return detected;
   };
 
-  // Calculate Statistics
   const calculateStats = (rows: any[], violations: any[]) => {
-    const criticalCount = violations.filter((a) => a.severity === 'CRITICAL').length;
-    const highCount = violations.filter((a) => a.severity === 'HIGH').length;
-    const affectedEmployees = new Set(violations.map((a) => a.empCode)).size;
-
+    const titleGroups: any = {};
     const employeeScores: any = {};
-    violations.forEach((a) => {
-      if (!employeeScores[a.empCode]) {
-        employeeScores[a.empCode] = {
-          name: a.employee,
+
+    violations.forEach((v) => {
+      if (!titleGroups[v.title]) {
+        titleGroups[v.title] = { critical: 0, high: 0, total: 0 };
+      }
+      titleGroups[v.title][v.severity.toLowerCase()]++;
+      titleGroups[v.title].total++;
+
+      if (!employeeScores[v.empCode]) {
+        employeeScores[v.empCode] = {
+          name: v.employee,
+          title: v.title,
           critical: 0,
           high: 0,
           total: 0,
           issues: {},
         };
       }
-      employeeScores[a.empCode][a.severity.toLowerCase()]++;
-      employeeScores[a.empCode].total++;
-      employeeScores[a.empCode].issues[a.type] =
-        (employeeScores[a.empCode].issues[a.type] || 0) + 1;
+      employeeScores[v.empCode][v.severity.toLowerCase()]++;
+      employeeScores[v.empCode].total++;
+      employeeScores[v.empCode].issues[v.type] =
+        (employeeScores[v.empCode].issues[v.type] || 0) + 1;
     });
 
     return {
       totalAudits: rows.length,
-      criticalViolations: criticalCount,
-      highViolations: highCount,
-      affectedEmployees,
+      criticalViolations: violations.filter((a: any) => a.severity === 'CRITICAL').length,
+      highViolations: violations.filter((a: any) => a.severity === 'HIGH').length,
+      affectedEmployees: new Set(violations.map((a: any) => a.empCode)).size,
+      titleGroups,
       employeeScores: Object.entries(employeeScores)
         .map(([code, info]: [string, any]) => ({ code, ...(info as any) }))
         .sort((a: any, b: any) => b.total - a.total),
@@ -258,10 +233,21 @@ const DataIntegrityDashboard = () => {
         { name: 'Missing AV', value: violations.filter((a: any) => a.type === 'MISSING_AV_DATA').length },
         { name: 'Math Error', value: violations.filter((a: any) => a.type === 'MATH_INCONSISTENCY').length },
       ],
+      weeklyTrend: generateWeeklyTrend(violations),
     };
   };
 
-  // Handle file upload
+  const generateWeeklyTrend = (violations: any[]) => {
+    const trends: any = {};
+    violations.forEach((v) => {
+      if (!trends[v.week]) {
+        trends[v.week] = { week: v.week, issues: 0 };
+      }
+      trends[v.week].issues++;
+    });
+    return Object.values(trends).sort((a: any, b: any) => a.week.localeCompare(b.week));
+  };
+
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -285,119 +271,87 @@ const DataIntegrityDashboard = () => {
           setLoadMessage(`✅ Loaded ${parsed.length} records from ${file.name}`);
         }
       } catch (error) {
-        setLoadMessage(`❌ Error parsing file: ${(error instanceof Error) ? error.message : 'Unknown error'}`);
+        setLoadMessage(`❌ Error: ${(error instanceof Error) ? error.message : 'Unknown error'}`);
       }
     };
     reader.readAsText(file);
   };
 
-  // Load sample data on mount
   useEffect(() => {
-    const loadSampleData = () => {
-      const sampleData: any[] = [
-        {
-          week: 'W43', day: '10/21', empCode: 'A-1382', empName: 'Ahmed Fathy Ahmed Abd El Mageed', title: 'Merchandiser',
-          shopCode: 'S-12725-001', shopName: 'Gresh Center (Ismailia)', avTotal: 11, refTotal: 8, wmTotal: 5,
-          avBrands: [2,0,0,4,0,0,0,0,0,0,0,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], avSum: 11,
-          refBrands: [2,0,0,0,0,0,0,0,1,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0], refSum: 8,
-          wmBrands: [2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], wmSum: 5,
-        },
-        {
-          week: 'W43', day: '10/23', empCode: 'A-1382', empName: 'Ahmed Fathy Ahmed Abd El Mageed', title: 'Merchandiser',
-          shopCode: 'S-12725-001', shopName: 'Gresh Center (Ismailia)', avTotal: 11, refTotal: 8, wmTotal: 5,
-          avBrands: [2,0,0,4,0,0,0,0,0,0,0,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], avSum: 11,
-          refBrands: [2,0,0,0,0,0,0,0,1,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0], refSum: 8,
-          wmBrands: [2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], wmSum: 5,
-        },
-        {
-          week: 'W44', day: '10/25', empCode: 'A-1382', empName: 'Ahmed Fathy Ahmed Abd El Mageed', title: 'Merchandiser',
-          shopCode: 'S-12725-001', shopName: 'Gresh Center (Ismailia)', avTotal: 11, refTotal: 8, wmTotal: 5,
-          avBrands: [2,0,0,4,0,0,0,0,0,0,0,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], avSum: 11,
-          refBrands: [2,0,0,0,0,0,0,0,1,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0], refSum: 8,
-          wmBrands: [2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], wmSum: 5,
-        },
-        {
-          week: 'W44', day: '10/30', empCode: 'A-1382', empName: 'Ahmed Fathy Ahmed Abd El Mageed', title: 'Merchandiser',
-          shopCode: 'S-12725-001', shopName: 'Gresh Center (Ismailia)', avTotal: null, refTotal: 8, wmTotal: 5,
-          avBrands: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], avSum: 0,
-          refBrands: [2,0,0,0,0,0,0,0,1,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0], refSum: 8,
-          wmBrands: [2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], wmSum: 5,
-        },
-        {
-          week: 'W45', day: '11/2', empCode: 'A-1382', empName: 'Ahmed Fathy Ahmed Abd El Mageed', title: 'Merchandiser',
-          shopCode: 'S-12725-001', shopName: 'Gresh Center (Ismailia)', avTotal: null, refTotal: 8, wmTotal: 5,
-          avBrands: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], avSum: 0,
-          refBrands: [2,0,0,0,0,0,0,0,1,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0], refSum: 8,
-          wmBrands: [2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], wmSum: 5,
-        },
-        {
-          week: 'W43', day: '10/20', empCode: 'A-2259', empName: 'Ahmed Farouk Ahmed El Sayed', title: 'Promoter',
-          shopCode: 'S-4682-093', shopName: 'Raya (Tagmoa)', avTotal: 52, refTotal: 3, wmTotal: 3,
-          avBrands: [28,16,2,0,0,0,0,0,0,0,0,0,3,0,2,0,0,1,0,0,0,3,0,0,0,0,0,0,0], avSum: 52,
-          refBrands: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], refSum: 3,
-          wmBrands: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], wmSum: 3,
-        },
-        {
-          week: 'W44', day: '10/25', empCode: 'A-2259', empName: 'Ahmed Farouk Ahmed El Sayed', title: 'Promoter',
-          shopCode: 'S-4682-093', shopName: 'Raya (Tagmoa)', avTotal: 52, refTotal: 3, wmTotal: 3,
-          avBrands: [28,16,2,0,0,0,0,0,0,0,0,0,3,0,2,0,0,1,0,0,0,3,0,0,0,0,0,0,0], avSum: 52,
-          refBrands: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], refSum: 3,
-          wmBrands: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], wmSum: 3,
-        },
-      ];
+    const sampleData: any[] = [
+      {
+        week: 'W43', day: '10/21', empCode: 'A-1382', empName: 'Ahmed Fathy', title: 'Merchandiser',
+        shopCode: 'S-001', shopName: 'Gresh Center', avTotal: 11, refTotal: 8, wmTotal: 5,
+        avBrands: [2,0,0,4,0,0,0,0,0,0,0,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], avSum: 11,
+        refBrands: [2,0,0,0,0,0,0,0,1,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0], refSum: 8,
+        wmBrands: [2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], wmSum: 5,
+      },
+      {
+        week: 'W44', day: '10/25', empCode: 'A-1382', empName: 'Ahmed Fathy', title: 'Merchandiser',
+        shopCode: 'S-001', shopName: 'Gresh Center', avTotal: 11, refTotal: 8, wmTotal: 5,
+        avBrands: [2,0,0,4,0,0,0,0,0,0,0,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], avSum: 11,
+        refBrands: [2,0,0,0,0,0,0,0,1,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0], refSum: 8,
+        wmBrands: [2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], wmSum: 5,
+      },
+      {
+        week: 'W43', day: '10/20', empCode: 'A-2259', empName: 'Ahmed Farouk', title: 'Promoter',
+        shopCode: 'S-093', shopName: 'Raya', avTotal: 52, refTotal: 3, wmTotal: 3,
+        avBrands: [28,16,2,0,0,0,0,0,0,0,0,0,3,0,2,0,0,1,0,0,0,3,0,0,0,0,0,0,0], avSum: 52,
+        refBrands: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], refSum: 3,
+        wmBrands: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], wmSum: 3,
+      },
+    ];
 
-      setData(sampleData);
-      const detected = detectViolations(sampleData);
-      setViolations(detected);
-      setFilteredViolations(detected);
-      const calculatedStats = calculateStats(sampleData, detected);
-      setStats(calculatedStats);
-      setFileLoaded(true);
-      setLoadMessage('📊 Sample data loaded. Upload your CSV to analyze real data.');
-    };
-
-    loadSampleData();
+    setData(sampleData);
+    const detected = detectViolations(sampleData);
+    setViolations(detected);
+    setFilteredViolations(detected);
+    const calculatedStats = calculateStats(sampleData, detected);
+    setStats(calculatedStats);
+    setFileLoaded(true);
+    setLoadMessage('📊 Sample data loaded');
   }, []);
 
-  // Filter violations
   useEffect(() => {
-    if (filterType === 'all') {
-      setFilteredViolations(violations);
-    } else {
-      setFilteredViolations(violations.filter((a: any) => a.type === filterType));
+    let filtered = violations;
+    if (filterType !== 'all') {
+      filtered = filtered.filter((a: any) => a.type === filterType);
     }
-  }, [filterType, violations]);
+    if (selectedTitle !== 'all') {
+      filtered = filtered.filter((a: any) => a.title === selectedTitle);
+    }
+    setFilteredViolations(filtered);
+  }, [filterType, selectedTitle, violations]);
 
   const COLORS = ['#ef4444', '#f97316', '#eab308', '#3b82f6'];
   const severityColor: any = { CRITICAL: '#ef4444', HIGH: '#f59e0b' };
+  const titleOptions = ['all', ...new Set(data.map((d: any) => d.title))];
 
   return (
-    <div className="bg-white min-h-screen">
-      {/* Gradient Header */}
-      <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 text-white py-12 shadow-lg">
-        <div className="max-w-7xl mx-auto px-8">
+    <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 min-h-screen">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-900 text-white py-8 shadow-2xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-4 mb-2">
-            <Shield size={40} className="text-yellow-300" />
-            <h1 className="text-5xl font-bold">Samsung CE Audit</h1>
+            <Shield size={40} className="text-yellow-300 animate-pulse" />
+            <h1 className="text-3xl sm:text-5xl font-bold">Samsung CE Audit</h1>
           </div>
-          <p className="text-blue-100 text-lg">Data Integrity Validation System</p>
+          <p className="text-blue-100 text-base sm:text-lg">Advanced Data Integrity Validation System</p>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-8 py-10">
-        {/* File Upload Section */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-8 mb-10 border-2 border-blue-300 hover:border-blue-500 transition-all shadow-md">
-          <div className="flex items-center gap-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Upload Section */}
+        <div className="bg-gradient-to-r from-blue-100 to-indigo-100 rounded-2xl p-6 sm:p-8 mb-8 border-2 border-blue-300 shadow-xl hover:shadow-2xl transition-all">
+          <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
             <div className="bg-blue-600 rounded-full p-4">
               <Upload size={32} className="text-white" />
             </div>
-            <div className="flex-1">
-              <h3 className="text-2xl font-bold text-gray-800 mb-1">📁 Upload CSV File</h3>
-              <p className="text-gray-600 text-sm">
-                Upload your CE Shelf Share Data CSV to detect data integrity issues
-              </p>
+            <div className="flex-1 text-center sm:text-left">
+              <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-1">📁 Upload CSV File</h3>
+              <p className="text-gray-600 text-sm">Upload CE Shelf Share Data to detect integrity issues</p>
             </div>
-            <label className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold cursor-pointer transition-all shadow-lg hover:shadow-xl transform hover:scale-105">
+            <label className="bg-blue-600 hover:bg-blue-700 text-white px-6 sm:px-8 py-3 rounded-lg font-semibold cursor-pointer transition-all shadow-lg hover:shadow-xl transform hover:scale-105">
               Choose File
               <input type="file" accept=".csv" onChange={handleFileUpload} className="hidden" />
             </label>
@@ -416,29 +370,43 @@ const DataIntegrityDashboard = () => {
           )}
         </div>
 
-        {/* Key Metrics */}
-        <div className="grid grid-cols-4 gap-6 mb-10">
+        {/* Title Filter */}
+        <div className="bg-white rounded-xl p-4 mb-8 shadow-lg border-l-4 border-blue-500">
+          <label className="text-gray-700 font-bold mr-4 block sm:inline">👔 Filter by Title:</label>
+          <select
+            value={selectedTitle}
+            onChange={(e) => setSelectedTitle(e.target.value)}
+            className="bg-gray-100 text-gray-800 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-blue-500 w-full sm:w-auto"
+          >
+            <option value="all">All Titles</option>
+            {titleOptions.map((title: any) => (
+              <option key={title} value={title}>
+                {title === 'all' ? 'All' : title}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Metrics Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {[
-            { label: 'Total Audits', value: stats.totalAudits, icon: Eye, color: 'blue', bgColor: 'bg-blue-50', borderColor: 'border-blue-500' },
-            { label: 'Critical Issues', value: stats.criticalViolations, icon: AlertTriangle, color: 'red', bgColor: 'bg-red-50', borderColor: 'border-red-500' },
-            { label: 'High Priority', value: stats.highViolations, icon: Zap, color: 'yellow', bgColor: 'bg-yellow-50', borderColor: 'border-yellow-500' },
-            { label: 'Affected Employees', value: stats.affectedEmployees, icon: Users, color: 'purple', bgColor: 'bg-purple-50', borderColor: 'border-purple-500' },
+            { label: 'Total Audits', value: stats.totalAudits, icon: Eye, color: 'blue', bg: 'from-blue-400 to-blue-600' },
+            { label: 'Critical Issues', value: stats.criticalViolations, icon: AlertTriangle, color: 'red', bg: 'from-red-400 to-red-600' },
+            { label: 'High Priority', value: stats.highViolations, icon: Zap, color: 'yellow', bg: 'from-yellow-400 to-yellow-600' },
+            { label: 'Affected Employees', value: stats.affectedEmployees, icon: Users, color: 'purple', bg: 'from-purple-400 to-purple-600' },
           ].map((metric: any, idx: number) => {
             const Icon = metric.icon;
-            const colorMap: any = { blue: '#2563eb', red: '#ef4444', yellow: '#f59e0b', purple: '#a855f7' };
             return (
               <div
                 key={idx}
-                onMouseEnter={() => setHoveredCard(idx)}
-                onMouseLeave={() => setHoveredCard(null)}
-                className={`${metric.bgColor} rounded-xl p-6 border-l-4 ${metric.borderColor} shadow-md transition-all transform hover:scale-105 hover:shadow-xl cursor-pointer`}
+                className={`bg-gradient-to-br ${metric.bg} rounded-xl p-6 text-white shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all`}
               >
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-gray-600 text-sm font-medium">{metric.label}</p>
-                    <p className="text-4xl font-bold text-gray-800 mt-2">{metric.value}</p>
+                    <p className="text-blue-100 text-sm font-medium">{metric.label}</p>
+                    <p className="text-3xl sm:text-4xl font-bold mt-2">{metric.value}</p>
                   </div>
-                  <Icon size={32} style={{ color: colorMap[metric.color] }} className="opacity-75" />
+                  <Icon size={32} className="opacity-50" />
                 </div>
               </div>
             );
@@ -446,15 +414,15 @@ const DataIntegrityDashboard = () => {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-8 bg-gray-100 rounded-lg p-2 w-fit shadow-sm">
+        <div className="flex flex-wrap gap-2 mb-8 bg-white rounded-xl p-3 shadow-lg border-b-4 border-blue-500">
           {['overview', 'employees', 'details', 'charts'].map((tab: string) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-6 py-3 rounded-lg font-semibold transition-all ${
+              className={`px-4 sm:px-6 py-2 rounded-lg font-semibold transition-all ${
                 activeTab === tab
-                  ? 'bg-blue-600 text-white shadow-lg'
-                  : 'text-gray-700 hover:bg-white hover:text-blue-600'
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
+                  : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -465,67 +433,44 @@ const DataIntegrityDashboard = () => {
         {/* Overview Tab */}
         {activeTab === 'overview' && (
           <div className="space-y-6">
-            <div className="bg-white rounded-xl p-8 shadow-md border-l-4 border-red-500">
+            <div className="bg-white rounded-xl p-6 shadow-lg border-l-4 border-red-500">
               <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
                 <AlertTriangle size={28} className="text-red-600" />
                 🎯 Data Integrity Alerts
               </h2>
-              <div className="grid grid-cols-2 gap-6">
-                <div className="bg-red-50 rounded-lg p-4 border-l-4 border-red-500">
-                  <p className="font-semibold text-red-800">🔴 Repeated Identical Entries</p>
-                  <p className="text-sm text-gray-600 mt-2">Suspicious copy-paste pattern across visits</p>
-                </div>
-                <div className="bg-red-50 rounded-lg p-4 border-l-4 border-red-500">
-                  <p className="font-semibold text-red-800">🔴 All-Zero Submissions</p>
-                  <p className="text-sm text-gray-600 mt-2">Unlikely zero-value shelf reports</p>
-                </div>
-                <div className="bg-yellow-50 rounded-lg p-4 border-l-4 border-yellow-500">
-                  <p className="font-semibold text-yellow-800">🟡 Incomplete AV Data</p>
-                  <p className="text-sm text-gray-600 mt-2">Missing key category values</p>
-                </div>
-                <div className="bg-yellow-50 rounded-lg p-4 border-l-4 border-yellow-500">
-                  <p className="font-semibold text-yellow-800">🟡 Arithmetic Mismatches</p>
-                  <p className="text-sm text-gray-600 mt-2">Category total ≠ sum of brands</p>
-                </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {[
+                  { title: 'Repeated Identical Entries', desc: 'Suspicious copy-paste pattern', color: 'red' },
+                  { title: 'All-Zero Submissions', desc: 'Unlikely zero-value reports', color: 'red' },
+                  { title: 'Incomplete AV Data', desc: 'Missing key category values', color: 'yellow' },
+                  { title: 'Arithmetic Mismatches', desc: 'Total ≠ sum of brands', color: 'yellow' },
+                ].map((alert: any, idx: number) => (
+                  <div key={idx} className={`bg-${alert.color}-50 rounded-lg p-4 border-l-4 border-${alert.color}-500`}>
+                    <p className={`font-semibold text-${alert.color}-800`}>🔴 {alert.title}</p>
+                    <p className="text-sm text-gray-600 mt-2">{alert.desc}</p>
+                  </div>
+                ))}
               </div>
             </div>
 
-            <div className="bg-white rounded-xl p-8 shadow-md">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6">🏆 Top Employees with Data Issues</h2>
-              <div className="space-y-3">
-                {stats.employeeScores?.slice(0, 5).map((emp: any, idx: number) => (
-                  <div
-                    key={emp.code}
-                    className="bg-gradient-to-r from-red-50 to-orange-50 rounded-lg p-5 border-l-4 border-red-500 hover:shadow-lg transition-all"
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <div className="flex items-center gap-3">
-                          <span className="bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold">
-                            {idx + 1}
-                          </span>
-                          <div>
-                            <p className="font-bold text-gray-800">{emp.name}</p>
-                            <p className="text-sm text-gray-600">Code: {emp.code}</p>
-                          </div>
+            <div className="bg-white rounded-xl p-6 shadow-lg">
+              <h2 className="text-2xl font-bold text-gray-800 mb-6">🏆 Top Employees</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {stats.employeeScores?.slice(0, 6).map((emp: any, idx: number) => (
+                  <div key={emp.code} className="bg-gradient-to-br from-red-50 to-orange-50 rounded-lg p-5 border-l-4 border-red-500 hover:shadow-lg transition-all">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex items-center gap-3">
+                        <span className="bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">{idx + 1}</span>
+                        <div>
+                          <p className="font-bold text-gray-800 text-sm">{emp.name}</p>
+                          <p className="text-xs text-gray-600">{emp.title}</p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-3xl font-bold text-red-600">{emp.total}</p>
-                        <p className="text-xs text-gray-600">total issues</p>
-                      </div>
+                      <span className="text-2xl font-bold text-red-600">{emp.total}</span>
                     </div>
-                    <div className="mt-3 flex gap-3">
-                      {emp.critical > 0 && (
-                        <span className="bg-red-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
-                          ⚠️ {emp.critical} Critical
-                        </span>
-                      )}
-                      {emp.high > 0 && (
-                        <span className="bg-yellow-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
-                          ⚠️ {emp.high} High
-                        </span>
-                      )}
+                    <div className="flex gap-2">
+                      {emp.critical > 0 && <span className="bg-red-600 text-white px-2 py-1 rounded text-xs font-semibold">C: {emp.critical}</span>}
+                      {emp.high > 0 && <span className="bg-yellow-500 text-white px-2 py-1 rounded text-xs font-semibold">H: {emp.high}</span>}
                     </div>
                   </div>
                 ))}
@@ -536,65 +481,37 @@ const DataIntegrityDashboard = () => {
 
         {/* Employees Tab */}
         {activeTab === 'employees' && (
-          <div className="bg-white rounded-xl p-8 shadow-md">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">📊 Employee Data Integrity Scores</h2>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-gray-700">
-                <thead className="bg-gray-100 border-b-2 border-gray-300">
-                  <tr>
-                    <th className="px-6 py-4 font-bold">Employee</th>
-                    <th className="px-6 py-4 font-bold">Code</th>
-                    <th className="px-6 py-4 font-bold text-center">Critical</th>
-                    <th className="px-6 py-4 font-bold text-center">High</th>
-                    <th className="px-6 py-4 font-bold text-center">Total</th>
-                    <th className="px-6 py-4 font-bold">Issue Types</th>
+          <div className="bg-white rounded-xl p-6 shadow-lg overflow-x-auto">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">📊 Employee Scores</h2>
+            <table className="w-full text-left text-gray-700 text-sm">
+              <thead className="bg-gradient-to-r from-blue-100 to-indigo-100 border-b-2 border-blue-300">
+                <tr>
+                  <th className="px-4 py-3 font-bold">Employee</th>
+                  <th className="px-4 py-3 font-bold">Title</th>
+                  <th className="px-4 py-3 font-bold text-center">C</th>
+                  <th className="px-4 py-3 font-bold text-center">H</th>
+                  <th className="px-4 py-3 font-bold text-center">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stats.employeeScores?.map((emp: any) => (
+                  <tr key={emp.code} className="border-b hover:bg-blue-50 transition-colors">
+                    <td className="px-4 py-3 font-semibold">{emp.name}</td>
+                    <td className="px-4 py-3">{emp.title}</td>
+                    <td className="px-4 py-3 text-center"><span className="bg-red-100 text-red-800 px-2 py-1 rounded font-bold">{emp.critical}</span></td>
+                    <td className="px-4 py-3 text-center"><span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded font-bold">{emp.high}</span></td>
+                    <td className="px-4 py-3 text-center"><span className="bg-red-600 text-white px-2 py-1 rounded font-bold">{emp.total}</span></td>
                   </tr>
-                </thead>
-                <tbody>
-                  {stats.employeeScores?.map((emp: any) => (
-                    <tr
-                      key={emp.code}
-                      className="border-b border-gray-200 hover:bg-blue-50 transition-colors"
-                    >
-                      <td className="px-6 py-4 font-semibold text-gray-800">{emp.name}</td>
-                      <td className="px-6 py-4 text-gray-600">{emp.code}</td>
-                      <td className="px-6 py-4 text-center">
-                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full font-bold">
-                          {emp.critical}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full font-bold">
-                          {emp.high}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <span className="bg-red-600 text-white px-3 py-1 rounded-full font-bold">
-                          {emp.total}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-xs">
-                        {Object.entries(emp.issues || {}).map(([type, count]: [string, any]) => (
-                          <span
-                            key={type}
-                            className="inline-block bg-orange-100 text-orange-800 rounded px-2 py-1 mr-2 mb-1 font-semibold"
-                          >
-                            {type.replace(/_/g, ' ')}: {count}
-                          </span>
-                        ))}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
 
         {/* Details Tab */}
         {activeTab === 'details' && (
           <div className="space-y-4">
-            <div className="bg-white rounded-xl p-6 shadow-md">
+            <div className="bg-white rounded-xl p-6 shadow-lg">
               <label className="text-gray-800 font-bold mr-4">Filter by Type:</label>
               <select
                 value={filterType}
@@ -602,18 +519,10 @@ const DataIntegrityDashboard = () => {
                 className="bg-gray-100 text-gray-800 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-blue-500"
               >
                 <option value="all">All Issues ({violations.length})</option>
-                <option value="COPY_PASTE_VIOLATION">
-                  Repeated Entries ({violations.filter((a: any) => a.type === 'COPY_PASTE_VIOLATION').length})
-                </option>
-                <option value="ALL_ZEROS_VIOLATION">
-                  All-Zero Submissions ({violations.filter((a: any) => a.type === 'ALL_ZEROS_VIOLATION').length})
-                </option>
-                <option value="MISSING_AV_DATA">
-                  Missing AV ({violations.filter((a: any) => a.type === 'MISSING_AV_DATA').length})
-                </option>
-                <option value="MATH_INCONSISTENCY">
-                  Math Mismatches ({violations.filter((a: any) => a.type === 'MATH_INCONSISTENCY').length})
-                </option>
+                <option value="COPY_PASTE_VIOLATION">Copy-Paste ({violations.filter((a: any) => a.type === 'COPY_PASTE_VIOLATION').length})</option>
+                <option value="ALL_ZEROS_VIOLATION">All-Zeros ({violations.filter((a: any) => a.type === 'ALL_ZEROS_VIOLATION').length})</option>
+                <option value="MISSING_AV_DATA">Missing AV ({violations.filter((a: any) => a.type === 'MISSING_AV_DATA').length})</option>
+                <option value="MATH_INCONSISTENCY">Math Error ({violations.filter((a: any) => a.type === 'MATH_INCONSISTENCY').length})</option>
               </select>
             </div>
 
@@ -622,79 +531,107 @@ const DataIntegrityDashboard = () => {
                 filteredViolations.map((violation: any, idx: number) => (
                   <div
                     key={idx}
-                    className="bg-white rounded-lg p-5 border-l-4 shadow-md hover:shadow-lg transition-all"
+                    className="bg-white rounded-lg p-4 border-l-4 shadow-md hover:shadow-lg transition-all"
                     style={{ borderColor: severityColor[violation.severity] }}
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
-                        <p className="font-bold text-gray-800 flex items-center gap-2">
-                          <span style={{ color: severityColor[violation.severity], fontSize: '20px' }}>●</span>
-                          {violation.type.replace(/_/g, ' ')}
-                        </p>
-                        <p className="text-sm text-gray-600 mt-2">👤 {violation.employee} ({violation.empCode})</p>
-                        <p className="text-sm text-gray-700 mt-1">📍 {violation.shop}</p>
-                        <p className="text-sm text-gray-700">📅 Week: {violation.week}, Day: {violation.day}</p>
+                        <p className="font-bold text-gray-800">{violation.type.replace(/_/g, ' ')}</p>
+                        <p className="text-sm text-gray-600 mt-1">👤 {violation.employee} | 👔 {violation.title}</p>
+                        <p className="text-sm text-gray-700">📍 {violation.shop} | 📅 {violation.week}</p>
                         <p className="text-sm text-blue-600 font-semibold mt-2">💡 {violation.message}</p>
                       </div>
-                      <span
-                        style={{ backgroundColor: severityColor[violation.severity] }}
-                        className="text-white px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap ml-4"
-                      >
+                      <span style={{ backgroundColor: severityColor[violation.severity] }} className="text-white px-3 py-1 rounded text-xs font-bold whitespace-nowrap ml-4">
                         {violation.severity}
                       </span>
                     </div>
                   </div>
                 ))
               ) : (
-                <p className="text-gray-500 text-center py-12 bg-gray-50 rounded-lg">
-                  ✓ No issues found for this filter
-                </p>
+                <p className="text-gray-500 text-center py-8 bg-gray-50 rounded-lg">✓ No issues found</p>
               )}
             </div>
           </div>
         )}
 
-        {/* Charts Tab */}
+        {/* Charts Tab - Enhanced */}
         {activeTab === 'charts' && (
-          <div className="grid grid-cols-2 gap-6">
-            <div className="bg-white rounded-xl p-8 shadow-md">
-              <h3 className="text-xl font-bold text-gray-800 mb-6">🎯 Top Employees by Issue Count</h3>
-              <ResponsiveContainer width="100%" height={350}>
-                <BarChart data={stats.employeeScores?.slice(0, 10)}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis dataKey="code" stroke="#6b7280" />
-                  <YAxis stroke="#6b7280" />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#f3f4f6', border: '2px solid #3b82f6', borderRadius: '8px' }}
-                  />
-                  <Bar dataKey="total" fill="#ef4444" radius={[8, 8, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+          <div className="space-y-6">
+            {/* Row 1: Bar & Line Charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-white rounded-xl p-6 shadow-lg">
+                <h3 className="text-lg font-bold text-gray-800 mb-4">📊 Top 10 Employees</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={stats.employeeScores?.slice(0, 10)}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey="code" stroke="#6b7280" />
+                    <YAxis stroke="#6b7280" />
+                    <Tooltip contentStyle={{ backgroundColor: '#f3f4f6', border: '2px solid #3b82f6', borderRadius: '8px' }} />
+                    <Bar dataKey="total" fill="#ef4444" radius={[8, 8, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="bg-white rounded-xl p-6 shadow-lg">
+                <h3 className="text-lg font-bold text-gray-800 mb-4">📈 Weekly Trend</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={stats.weeklyTrend}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey="week" stroke="#6b7280" />
+                    <YAxis stroke="#6b7280" />
+                    <Tooltip contentStyle={{ backgroundColor: '#f3f4f6', border: '2px solid #3b82f6', borderRadius: '8px' }} />
+                    <Line type="monotone" dataKey="issues" stroke="#3b82f6" strokeWidth={2} dot={{ fill: '#3b82f6' }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             </div>
 
-            <div className="bg-white rounded-xl p-8 shadow-md">
-              <h3 className="text-xl font-bold text-gray-800 mb-6">📊 Issue Type Distribution</h3>
-              <ResponsiveContainer width="100%" height={350}>
-                <PieChart>
-                  <Pie
-                    data={stats.issueDistribution}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label
-                    dataKey="value"
-                    outerRadius={110}
-                  >
-                    {COLORS.map((color, index) => (
-                      <Cell key={`cell-${index}`} fill={color} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#f3f4f6', border: '2px solid #3b82f6', borderRadius: '8px' }}
-                  />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
+            {/* Row 2: Pie & Area Charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-white rounded-xl p-6 shadow-lg">
+                <h3 className="text-lg font-bold text-gray-800 mb-4">🎯 Issue Distribution</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie data={stats.issueDistribution} cx="50%" cy="50%" labelLine={false} label dataKey="value" outerRadius={100}>
+                      {COLORS.map((color, index) => (
+                        <Cell key={`cell-${index}`} fill={color} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={{ backgroundColor: '#f3f4f6', border: '2px solid #3b82f6', borderRadius: '8px' }} />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="bg-white rounded-xl p-6 shadow-lg">
+                <h3 className="text-lg font-bold text-gray-800 mb-4">📉 Issues Over Time</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <AreaChart data={stats.weeklyTrend}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey="week" stroke="#6b7280" />
+                    <YAxis stroke="#6b7280" />
+                    <Tooltip contentStyle={{ backgroundColor: '#f3f4f6', border: '2px solid #3b82f6', borderRadius: '8px' }} />
+                    <Area type="monotone" dataKey="issues" fill="#fca5a5" stroke="#ef4444" strokeWidth={2} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Row 3: Title Analysis */}
+            <div className="bg-white rounded-xl p-6 shadow-lg">
+              <h3 className="text-lg font-bold text-gray-800 mb-4">👔 Issues by Title</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                {Object.entries(stats.titleGroups || {}).map(([title, data]: [string, any]) => (
+                  <div key={title} className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-4 border-l-4 border-blue-500">
+                    <p className="font-semibold text-gray-800">{title}</p>
+                    <p className="text-2xl font-bold text-blue-600 mt-2">{data.total}</p>
+                    <div className="flex gap-2 mt-2">
+                      <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">C:{data.critical}</span>
+                      <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">H:{data.high}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
