@@ -1,27 +1,25 @@
-// File: src/lib/csv/types.ts
+// src/lib/csv/types.ts
 
-// Existing AuditRow for legacy shelf audit (if needed)
+// The expected final structure for the dashboard components
 export interface AuditRow {
   employeeName: string;
-  totalAV: number;     // e.g., total AV issues
-  totalRef: number;    // e.g., total Ref issues
-  totalWM: number;     // e.g., total WM issues
+  totalAV: number;     // Assuming 'total available' (total entries/audits)
+  totalRef: number;    // Assuming 'total pass/reference' (total checks that passed)
+  totalWM: number;     // Assuming 'total warning/mismatch' (total checks that failed)
 }
 
-// ⚠️ NEW INTERFACE FOR ROUTE MAP DATA
-export interface RouteMapRow {
-  "Sub Div.": string;
-  "Job": string;
-  "Code": string;
-  "Name": string;
-  "DATE ": string;       // Note the space in the column name
-  "Shop Code": string;
-  "Shop Name": string;
-  "Area": string;
-  "Governorate": string;
-  "District": string;
-  "Shop Code_Audited": string; // Mapping the repeated column for clarity
-  "Shop Name_Audited": string; // Mapping the repeated column for clarity
-  "Comment ": string;     // Note the space in the column name
-  "Check": string;       // TRUE or FALSE validation result
+// NEW: Structure for the raw data directly from 'CE IR - OR Route Map W44.csv'
+export interface RawAuditRow {
+  'Sub Div.': string;
+  'Job': string;
+  'Code': string;
+  'Name': string;
+  'DATE ': string; // Note the trailing space from the CSV header
+  'Shop Code': string;
+  'Shop Name': string;
+  'Area': string;
+  'Governorate': string;
+  'District': string;
+  'Comment ': string; // Note the trailing space from the CSV header
+  'Check': string; // This is the crucial 'TRUE'/'FALSE' integrity check
 }
