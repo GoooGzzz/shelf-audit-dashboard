@@ -1,4 +1,5 @@
-﻿import Papa from 'papaparse';
+﻿// src/lib/csv/parseCSV.ts
+import Papa from 'papaparse';
 import type { AuditRow } from './schema';
 
 export class CSVParser {
@@ -9,18 +10,23 @@ export class CSVParser {
         dynamicTyping: true,
         skipEmptyLines: true,
         worker: true,
-        complete: (results) => resolve(results.data as AuditRow[]),
+        complete: (results) => {
+          if (results.errors.length) reject(results.errors);
+          else resolve(results.data as AuditRow[]);
+        },
         error: reject,
       });
     });
   }
-  static unparse(rows: AuditRow[]) {
+
+  static unparse(rows: AuditRow[], filename = 'export.csv') {
     const csv = Papa.unparse(rows);
-    const blob = new Blob([csv], { type: 'text/csv' });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'export.csv';
+    a.download = filename;
     a.click();
+    URL.revokeObjectURL(url);
   }
 }
