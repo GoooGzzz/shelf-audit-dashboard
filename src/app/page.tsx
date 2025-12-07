@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { CSVParser } from '@/lib/csv/parseCSV';
-import { validateRows } from '@/lib/csv/validateWithZod';
-import type { AuditRow } from '@/lib/csv/schema';
+import { CSVParser } from '@\/lib\/csv\/parseCSV';
+import { validateRows } from '@\/lib\/csv\/validateWithZod';
+import type { AuditRow } from '@\/lib\/csv\/schema';
 import CSVCharts from '@/components/CSVCharts';
 
 export default function Home() {

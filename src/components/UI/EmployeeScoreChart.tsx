@@ -2,8 +2,8 @@
 import React from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"; // Import from recharts
 
-// Assuming you are importing the AuditRow type from somewhere like @/lib/csv/types
-import { AuditRow } from "@/lib/csv/types";  // Adjust the path if necessary
+// Assuming you are importing the AuditRow type from somewhere like @\/lib\/csv\/types
+import { AuditRow } from "@\/lib\/csv\/types";  // Adjust the path if necessary
 
 interface EmployeeScoreChartProps {
   rows: AuditRow[];

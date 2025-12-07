@@ -1,4 +1,4 @@
-import { CSVParser } from '@/lib/csv/parseCSV';
+import { CSVParser } from '@\/lib\/csv\/parseCSV';
 
 <input
   type="file"
