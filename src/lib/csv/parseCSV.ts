@@ -6,35 +6,29 @@ export class CSVParser {
   static parse(file: File): Promise<AuditRow[]> {
     return new Promise((resolve, reject) => {
       Papa.parse(file, {
-        header: false,           // ← THIS IS THE KEY FIX
+        header: false,                    // ← your CSV has no headers
         dynamicTyping: true,
         skipEmptyLines: true,
         worker: true,
-        transformHeader: () => null, // ignore headers completely
-        // Map columns by position: 0=sku, 1=location, 2=quantity, 3=price, 4=status, 5=date
-        transform: (value, field) => {
-          if (field === 0) return String(value).trim();        // sku
-          if (field === 1) return String(value).trim();        // location
-          if (field === 2) return Number(value) || 0;          // quantity
-          if (field === 3) return value ? Number(value) : undefined; // price
-          if (field === 4) return String(value).trim() || undefined;  // status
-          if (field === 5) return String(value).trim() || undefined;  // date
-          return value;
-        },
+
+        // Map columns by position: 0=sku, 1=location, 2=quantity
         complete: (results) => {
-          if (results.errors.length) reject(results.errors);
-          else {
-  // Convert array of arrays → objects with correct keys
-            const mapped = results.data.map((row: any[]) => ({
-              sku: row[0],
-              location: row[1],
-              quantity: Number(row[2]) || 0,
-              price: row[3] ? Number(row[3]) : undefined,
-              status: row[4],
-              date: row[5],
-            }));
-            resolve(mapped as AuditRow[]);
+          if (results.errors.length) {
+            reject(results.errors);
+            return;
           }
+
+          const rows = results.data as any[][];
+          const mapped: AuditRow[] = rows.map(row => ({
+            sku: String(row[0] ?? '').trim(),
+            location: String(row[1] ?? '').trim(),
+            quantity: Number(row[2]) || 0,
+            price: row[3] ? Number(row[3]) : undefined,
+            status: row[4] ? String(row[4]).trim() : undefined,
+            date: row[5] ? String(row[5]).trim() : undefined,
+          }));
+
+          resolve(mapped);
         },
         error: reject,
       });
