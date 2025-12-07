@@ -1,3 +1,4 @@
+// src/app/page.tsx
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -5,99 +6,166 @@ import { CSVParser } from '@/lib/csv/parseCSV';
 import { validateRows } from '@/lib/csv/validateWithZod';
 import type { AuditRow } from '@/lib/csv/schema';
 import CSVCharts from '@/components/CSVCharts';
+import { Canvas } from '@react-three/fiber';
+import { OrbitControls, Box, Sphere, Text } from '@react-three/drei';
 import { Tooltip } from 'react-tooltip';
-import { MagnifyingGlassIcon, ArrowDownTrayIcon } from '@heroicons/react/24/solid';
+import { 
+  Upload, Download, Moon, Sun, Menu, X, Search, Filter, 
+  AlertCircle, CheckCircle2, Activity, BarChart3, PieChartIcon,
+  TrendingUp, Package, Calendar, User, FileText
+} from 'lucide-react';
+
+function Shelf3D({ data }: { data: AuditRow[] }) {
+  const maxQty = Math.max(...data.map(r => r.quantity), 1);
+  return (
+    <>
+      <ambientLight intensity={0.5} />
+      <pointLight position={[10, 10, 10]} />
+      {data.slice(0, 50).map((row, i) => (
+        <Box key={i} position={[i % 10 * 1.5 - 7.5, row.quantity / maxQty * 5, Math.floor(i / 10) * 1.5 - 5]}>
+          <meshStandardMaterial color={row.quantity === 0 ? '#ef4444' : row.quantity < 10 ? '#f59e0b' : '#10b981'} />
+        </Box>
+      ))}
+      <OrbitControls />
+    </>
+  );
+}
 
 export default function Home() {
   const [rows, setRows] = useState<AuditRow[]>([]);
-  const [errors, setErrors] = useState<{ row: number; field: string; message: string }[]>([]);
+  const [errors, setErrors] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [search, setSearch] = useState('');
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [auditLogs, setAuditLogs] = useState<string[]>([]);
-  const pageSize = 50;
+  const [search, setSearch] = useState('');
+  const [selectedTab, setSelectedTab] = useState('overview');
 
-  const addLog = (msg: string) => setAuditLogs(prev => [...prev, `${new Date().toISOString()}: ${msg}`]);
+  const stats = useMemo(() => {
+    if (!rows.length) return { total: 0, outOfStock: 0, lowStock: 0, locations: 0 };
+    const outOfStock = rows.filter(r => r.quantity === 0).length;
+    const lowStock = rows.filter(r => r.quantity > 0 && r.quantity < 10).length;
+    const locations = new Set(rows.map(r => r.location)).size;
+    return { total: rows.length, outOfStock, lowStock, locations };
+  }, [rows]);
 
-  const filteredRows = useMemo(() => rows.filter(r => r.sku.includes(search) || r.location.includes(search)), [rows, search]);
-  const pagedErrors = errors.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const filtered = useMemo(() => 
+    rows.filter(r => r.sku.toLowerCase().includes(search.toLowerCase()) || r.location.includes(search)),
+    [rows, search]
+  );
 
-  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFile = async (e: any) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     setLoading(true);
-    addLog(`Uploading ${file.name}`);
     try {
       const parsed = await CSVParser.parse(file);
-      const { valid, errors: validationErrors } = validateRows(parsed);
+      const { valid, errors } = validateRows(parsed);
       setRows(valid);
-      setErrors(validationErrors);
-      addLog(`Validated: ${valid.length} valid, ${validationErrors.length} errors`);
-    } catch (err) {
-      addLog(`Error: ${err}`);
-      alert('Parse failed');
-    } finally {
-      setLoading(false);
-    }
+      setErrors(errors);
+    } catch (err) { alert('Failed to parse CSV'); }
+    finally { setLoading(false); }
   };
 
   return (
-    <main className={`min-h-screen p-8 ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-4xl font-bold mb-8 flex items-center gap-2">
-          Shelf Audit Dashboard
-          <button onClick={() => setDarkMode(!darkMode)} className="text-sm bg-gray-200 dark:bg-gray-700 p-1 rounded">Toggle Dark</button>
-        </h1>
-
-        <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow mb-8">
-          <label className="block text-lg font-semibold mb-4">Upload CSV</label>
-          <input type="file" accept=".csv" onChange={handleFile} className="file:py-3 file:px-8 file:rounded-lg file:bg-blue-600 file:text-white hover:file:bg-blue-700" />
+    <div className={`min-h-screen ${darkMode ? 'bg-gray-950 text-white' : 'bg-gradient-to-br from-blue-50 to-indigo-100'} transition-all`}>
+      {/* Sidebar */}
+      <div className={`fixed inset-y-0 left-0 z-50 w-72 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform ${darkMode ? 'bg-black/90' : 'bg-white/95'} backdrop-blur-xl shadow-2xl`}>
+        <div className="p-6 border-b border-gray-700">
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
+            Shelf Audit Pro
+          </h1>
         </div>
-
-        {loading && <div className="flex justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>}
-
-        {errors.length > 0 && (
-          <div className="bg-red-50 dark:bg-red-900 p-6 rounded-xl mb-8">
-            <h3 className="font-bold text-red-800 dark:text-red-300">{errors.length} Errors</h3>
-            <ul className="text-sm text-red-700 dark:text-red-200 overflow-y-auto max-h-60">
-              {pagedErrors.map((e, i) => <li key={i} data-tooltip-id="error-tip">Row {e.row} — {e.field}: {e.message}</li>)}
-            </ul>
-            <div className="flex justify-between mt-4">
-              <button onClick={() => setCurrentPage(p => Math.max(1, p-1))} disabled={currentPage === 1}>Prev</button>
-              <span>Page {currentPage} / {Math.ceil(errors.length / pageSize)}</span>
-              <button onClick={() => setCurrentPage(p => p+1)} disabled={currentPage * pageSize >= errors.length}>Next</button>
-            </div>
-            <Tooltip id="error-tip" content="Click to fix" />
-          </div>
-        )}
-
-        {rows.length > 0 && (
-          <>
-            <div className="bg-green-50 dark:bg-green-900 p-6 rounded-xl mb-8 flex justify-between items-center">
-              <p className="text-2xl font-bold text-green-800 dark:text-green-300">{rows.length.toLocaleString()} valid rows</p>
-              <button onClick={() => CSVParser.unparse(rows, `audit-${new Date().toISOString().slice(0,10)}.csv`)} className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 flex gap-2">
-                <ArrowDownTrayIcon className="h-5 w-5" /> Export
-              </button>
-            </div>
-
-            <div className="mb-8">
-              <input type="text" placeholder="Search by SKU or Location" value={search} onChange={e => setSearch(e.target.value)} className="p-2 border rounded w-full max-w-md flex gap-2 items-center" />
-              <MagnifyingGlassIcon className="h-5 w-5 text-gray-500" />
-            </div>
-
-            <CSVCharts rows={filteredRows} />
-
-            <div className="mt-8 bg-white dark:bg-gray-800 p-6 rounded-xl shadow">
-              <h3 className="text-xl font-bold mb-4">Audit Logs</h3>
-              <ul className="text-sm overflow-y-auto max-h-60">
-                {auditLogs.map((log, i) => <li key={i}>{log}</li>)}
-              </ul>
-            </div>
-          </>
-        )}
+        <nav className="p-4 space-y-2">
+          {[
+            { id: 'overview', icon: BarChart3, label: 'Dashboard Overview' },
+            { id: '3d', icon: Package, label: '3D Shelf View' },
+            { id: 'charts', icon: PieChartIcon, label: 'Analytics' },
+            { id: 'data', icon: FileText, label: 'Raw Data Table' },
+            { id: 'logs', icon: Activity, label: 'Audit Logs' },
+          ].map(item => (
+            <button
+              key={item.id}
+              onClick={() => setSelectedTab(item.id)}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                selectedTab === item.id 
+                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg' 
+                  : 'hover:bg-gray-800/50'
+              }`}
+            >
+              <item.icon className="w-5 h-5" />
+              <span>{item.label}</span>
+            </button>
+          ))}
+        </nav>
       </div>
-    </main>
+
+      {/* Main Content */}
+      <div className={`transition-all ${sidebarOpen ? 'ml-72' : 'ml-0'}`}>
+        <header className="sticky top-0 z-40 backdrop-blur-xl bg-white/70 dark:bg-black/70 border-b border-gray-200 dark:border-gray-800">
+          <div className="flex items-center justify-between p-6">
+            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-800">
+              {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+            <div className="flex items-center gap-4">
+              <button onClick={() => setDarkMode(!darkMode)} className="p-3 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-800">
+                {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
+              <label className="cursor-pointer">
+                <input type="file" accept=".csv" onChange={handleFile} className="hidden" />
+                <div className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all">
+                  <Upload className="w-5 h-5" /> Upload CSV
+                </div>
+              </label>
+            </div>
+          </div>
+        </header>
+
+        <main className="p-8">
+          {loading && <div className="text-center text-2xl">Processing 10,000+ rows...</div>}
+
+          {rows.length > 0 && (
+            <>
+              {/* Stats Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                {[
+                  { label: 'Total Items', value: stats.total.toLocaleString(), icon: Package, color: 'from-blue-500 to-cyan-500' },
+                  { label: 'Out of Stock', value: stats.outOfStock, icon: AlertCircle, color: 'from-red-500 to-pink-500' },
+                  { label: 'Low Stock', value: stats.lowStock, icon: TrendingUp, color: 'from-orange-500 to-yellow-500' },
+                  { label: 'Locations/Dates', value: stats.locations, icon: Calendar, color: 'from-purple-500 to-indigo-500' },
+                ].map((stat, i) => (
+                  <div key={i} className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg rounded-2xl shadow-xl p-6 border border-gray-200 dark:border-gray-700">
+                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${stat.color} flex items-center justify-center mb-4`}>
+                      <stat.icon className="w-7 h-7 text-white" />
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{stat.label}</p>
+                    <p className="text-3xl font-bold">{stat.value}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Dynamic Content */}
+              {selectedTab === '3d' && (
+                <div className="bg-black rounded-3xl h-96 overflow-hidden shadow-2xl">
+                  <Canvas camera={{ position: [0, 10, 20], fov: 60 }}>
+                    <Shelf3D data={rows} />
+                  </Canvas>
+                </div>
+              )}
+
+              {selectedTab === 'charts' && <CSVCharts rows={filtered} />}
+
+              {selectedTab === 'overview' && (
+                <div className="text-center py-20">
+                  <h2 className="text-6xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+                    Welcome to Shelf Audit Pro
+                  </h2>
+                  <p className="text-xl text-gray-600 dark:text-gray-400">Upload your CSV to see 3D visualization, analytics, and insights</p>
+                </div>
+              )}
+            </>
+          )}
+        </main>
+      </div>
+    </div>
   );
 }
