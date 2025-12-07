@@ -1,25 +1,89 @@
 // src/lib/csv/types.ts
 
-// The expected final structure for the dashboard components
 export interface AuditRow {
-  employeeName: string;
-  totalAV: number;     // Assuming 'total available' (total entries/audits)
-  totalRef: number;    // Assuming 'total pass/reference' (total checks that passed)
-  totalWM: number;     // Assuming 'total warning/mismatch' (total checks that failed)
+  week: string;
+  day: string;
+  empCode: string;
+  empName: string;
+  title: string;
+  shopCode: string;
+  shopName: string;
+  avTotal: number | null;
+  refTotal: number | null;
+  wmTotal: number | null;
+  avBrands: number[];
+  refBrands: number[];
+  wmBrands: number[];
+  avSum: number;
+  refSum: number;
+  wmSum: number;
 }
 
-// NEW: Structure for the raw data directly from 'CE IR - OR Route Map W44.csv'
 export interface RawAuditRow {
   'Sub Div.': string;
   'Job': string;
   'Code': string;
   'Name': string;
-  'DATE ': string; // Note the trailing space from the CSV header
+  'DATE ': string;
   'Shop Code': string;
   'Shop Name': string;
   'Area': string;
   'Governorate': string;
   'District': string;
-  'Comment ': string; // Note the trailing space from the CSV header
-  'Check': string; // This is the crucial 'TRUE'/'FALSE' integrity check
+  'Comment ': string;
+  'Check': string;
+}
+
+export interface Violation {
+  type: string;
+  severity: 'CRITICAL' | 'HIGH' | 'MEDIUM';
+  employee: string;
+  empCode: string;
+  title: string;
+  shop?: string;
+  shopCode?: string;
+  week?: string;
+  day?: string;
+  message: string;
+  zScore?: string;
+  affectedWeeks?: number;
+  trend?: string;
+  consistency?: string;
+  pattern?: string;
+  shopsCount?: number;
+  auditorsCount?: number;
+  entriesCount?: number;
+}
+
+export interface EmployeeScore {
+  code: string;
+  name: string;
+  title: string;
+  critical: number;
+  high: number;
+  medium: number;
+  total: number;
+  issues: Record<string, number>;
+}
+
+export interface Stats {
+  totalAudits: number;
+  criticalViolations: number;
+  highViolations: number;
+  mediumViolations: number;
+  affectedEmployees: number;
+  titleGroups: Record<string, any>;
+  employeeScores: EmployeeScore[];
+  issueDistribution: Array<{ name: string; value: number }>;
+  weeklyTrend: Array<any>;
+  severityDistribution?: Array<{ name: string; value: number; color: string }>;
+}
+
+export interface AIInsight {
+  type: string;
+  icon: string;
+  title: string;
+  value: string;
+  status: string;
+  description: string;
 }
