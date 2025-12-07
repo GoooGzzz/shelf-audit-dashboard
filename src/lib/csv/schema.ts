@@ -1,12 +1,13 @@
 ﻿// src/lib/csv/schema.ts
-// Minimal schema — only for TypeScript typing
-// We skip Zod validation because your CSV is 3-column positional data
+import { z } from 'zod';
 
-export type AuditRow = {
-  sku: string;
-  location: string;
-  quantity: number;
-};
+export const AuditRowSchema = z.object({
+  sku: z.string().min(1, 'SKU required').trim(),
+  location: z.string().min(1, 'Location required').trim(),
+  quantity: z.number().int().min(0).max(10000, 'Quantity too high'),
+  date: z.string().refine(val => !isNaN(Date.parse(val)), 'Invalid date'),
+}).superRefine((data, ctx) => {
+  if (rows.some(r => r.sku === data.sku)) ctx.addIssue({ path: ['sku'], message: 'Duplicate SKU' });
+});
 
-// No Zod schema = no validation errors
-// We'll validate only that we have 3 columns in parseCSV.ts
+export type AuditRow = z.infer<typeof AuditRowSchema>;
