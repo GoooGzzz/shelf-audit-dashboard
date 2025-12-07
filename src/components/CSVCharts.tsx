@@ -1,27 +1,18 @@
 // src/components/CSVCharts.tsx
 'use client';
 
-import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import type { AuditRow } from '@\/lib\/csv\/schema';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import type { AuditRow } from '@/lib/csv/schema';
 
 type Props = { rows: AuditRow[] };
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
 
 export default function CSVCharts({ rows }: Props) {
-  // 1. Stock status distribution
-  const statusData = rows.reduce((acc, row) => {
-    const status = row.status || 'unknown';
-    acc[status] = (acc[status] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-
-  const pieData = Object.entries(statusData).map(([name, value]) => ({ name, value }));
-
-  // 2. Quantity by location (top 10)
+  // 1. Quantity by location (top 10)
   const locationData = rows
     .reduce((acc, row) => {
-      const loc = row.location || 'Unknown';
+      const loc = row.location.trim() || 'Unknown';
       const existing = acc.find(x => x.location === loc);
       if (existing) existing.quantity += row.quantity;
       else acc.push({ location: loc, quantity: row.quantity });
@@ -30,25 +21,33 @@ export default function CSVCharts({ rows }: Props) {
     .sort((a, b) => b.quantity - a.quantity)
     .slice(0, 10);
 
-  // 3. Low stock items (<10)
-  const lowStock = rows.filter(r => r.quantity < 10).length;
+  // 2. Low stock items (<10)
+  const lowStockCount = rows.filter(r => r.quantity < 10).length;
+  const zeroStockCount = rows.filter(r => r.quantity === 0).length;
+  const inStockCount = rows.length - lowStockCount - zeroStockCount;
+
+  const pieData = [
+    { name: 'In Stock', value: inStockCount, color: '#10b981' },
+    { name: 'Low Stock (<10)', value: lowStockCount, color: '#f59e0b' },
+    { name: 'Out of Stock', value: zeroStockCount, color: '#ef4444' },
+  ];
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-12">
       <div className="bg-white p-6 rounded-lg shadow">
-        <h3 className="text-xl font-bold mb-4">Stock Status Overview</h3>
+        <h3 className="text-xl font-bold mb-4">Stock Level Overview</h3>
         <ResponsiveContainer width="100%" height={300}>
           <PieChart>
             <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label>
-              {pieData.map((_, i) => (
-                <Cell key={i} fill={COLORS[i % COLORS.length]} />
+              {pieData.map((entry, i) => (
+                <Cell key={i} fill={entry.color} />
               ))}
             </Pie>
             <Tooltip />
             <Legend />
           </PieChart>
         </ResponsiveContainer>
-        {lowStock > 0 && <p className="text-red-600 font-bold mt-4">{lowStock} items low in stock!</p>}
+        {zeroStockCount > 0 && <p className="text-red-600 font-bold mt-4">{zeroStockCount} items out of stock!</p>}
       </div>
 
       <div className="bg-white p-6 rounded-lg shadow">
