@@ -1,30 +1,22 @@
 // src/lib/csv/validateWithZod.ts
 import { AuditRowSchema } from './schema';
-import { z } from 'zod';
+import type { AuditRow } from './schema';
 
-export type ValidationError = {
-  row: number;
-  field: string;
-  message: string;
-};
+export const validateRows = (rows: any[]) => {
+  const valid: AuditRow[] = [];
+  const errors: { row: number; field: string; message: string }[] = [];
 
-export const validateCSVRows = (rows: any[]): { valid: typeof AuditRowSchema._type[], errors: ValidationError[] } => {
-  const valid: typeof AuditRowSchema._type[] = [];
-  const errors: ValidationError[] = [];
-
-  rows.forEach((row, idx) => {
+  rows.forEach((row, i) => {
     const result = AuditRowSchema.safeParse(row);
-    if (result.success) {
-      valid.push(result.data);
-    } else {
-      result.error.issues.forEach(issue => {
+    if (result.success) valid.push(result.data);
+    else
+      result.error.issues.forEach((issue) => {
         errors.push({
-          row: idx + 2,
+          row: i + 2,
           field: issue.path.join('.') || 'unknown',
           message: issue.message,
         });
       });
-    }
   });
 
   return { valid, errors };
